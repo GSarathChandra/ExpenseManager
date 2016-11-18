@@ -1,0 +1,199 @@
+<!DOCTYPE html >
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Expense Manager</title>
+	
+	<!-- Latest minified jQuery -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<!--  integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" -->
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<!-- integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous" -->
+	
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto+Slab" rel="stylesheet">
+	<style>
+		html * {font-family: 'Roboto Slab', serif;}
+	</style>
+
+	<script type="text/javascript">
+	
+		var allMembers = [];
+		var allExpenses = [];
+		
+		var EXPENSES_FIELDS = new Map();
+		EXPENSES_FIELDS.set(0, "paidBy");
+		EXPENSES_FIELDS.set(1, "paidFor");
+		EXPENSES_FIELDS.set(2, "amount");
+		EXPENSES_FIELDS.set(3, "description");
+		$(document).ready(function(){
+			
+			$("#addExpensesDiv, #allExpensesDiv").hide();
+			
+			$("#addMemberBtn").on('click',function(){
+				if(allMembers.length > 0){
+					$("#startExpensesBtn").prop("disabled", false);
+				} else {
+					$("#startExpensesBtn").prop("disabled", true);
+				}
+			});
+			
+			$("#member").on('keyup keydown',function(){
+				if($("#member").val().trim().length == 0){
+					$("#addMemberBtn").prop("disabled", true);
+				} else {
+					$("#addMemberBtn").prop("disabled", false);
+				}
+			});
+		
+		});
+		//end of on-ready function
+		
+		function getFormattedName(name){
+			var formattedName = name.trim().toLowerCase();
+			formattedName = formattedName.substring(0,1).toUpperCase()+formattedName.substring(1);
+			return formattedName; 
+		}
+		
+		function addMember(){
+			var memberName = getFormattedName($("#member").val());
+			if($.inArray(memberName, allMembers) === -1){
+				allMembers.push(memberName);
+				var htmlForRows = $("#membersTableBody").html()+"<tr> <td class='table-cell'>"+memberName+"</td> </tr>";
+				//htmlForRows = "<tbody>"+htmlForRows+"</tbody>";
+				$("#membersTableBody").html(htmlForRows);	
+			} else {
+				alert(memberName + " is already added !");
+			}
+			$("#member").val("");
+			if(allMembers.length > 1){
+				refreshDropDowns();	
+			}
+			return false;
+		}
+	
+		function addExpense(){
+			var htmlForExpenses = $("#expensesTableBody").html() + "<tr>";
+			var expenseObj = {};
+			
+			$("#addExpenseForm td.col-md-1").each(function(index, element){
+				var fieldValue = $(element).children().first().val().toString();
+				if(index == 1){	// Replace "," with ", " to for better readability
+					fieldValue = fieldValue.replace(/,/g , ", ");
+				}
+				htmlForExpenses += "<td class='table-cell col-xs-3' align='center'>"+fieldValue+"</td>";
+				
+				var property = EXPENSES_FIELDS.get(index);
+				expenseObj[property] = fieldValue;				
+			});
+			
+			$("#expensesTableBody").html("</tr>"+htmlForExpenses);
+			allExpenses.push(expenseObj);
+			return false;
+		}
+	
+		function startExpenses(){
+			refreshDropDowns();
+			$("#addExpensesDiv, #allExpensesDiv").show();
+		}
+		
+		function refreshDropDowns(){
+			var htmlForSelect = "";
+			$.each(allMembers, function(_, val){
+				htmlForSelect += "<option value = '"+val+"'>"+val+"</option>"; 
+			});
+			$('#spender').html(htmlForSelect);
+			$('#recipients').html(htmlForSelect);
+		}
+	</script>
+
+</head>
+
+<body>
+	<h1 align="center">EXPENSE MANAGER</h1>
+	<hr style="height:10px">
+	<div align="center" class="table-responsive" 
+		style="padding-bottom: 1%; padding-left: 20%;	padding-right: 20%;	padding-top: 1%;">
+		<div id="addMemberForm">
+			<table class="table">
+				<thead><tr align="center"><th colspan="2"><p align="center">Add Members</p></th></tr></thead>
+				<tbody>
+					<tr>
+						<td class="table-cell col-xs-1" align="right" ><label>Member Name</label></td>
+						<td class="table-cell col-md-1"><input type="text" id="member" autocomplete="off"/></td> 
+					</tr>
+					<tr><td colspan="2" align="center">
+						<input type="button" id="addMemberBtn" value="Add Member" onclick="addMember()"/>
+					</td></tr>
+				</tbody>
+			</table>
+		</div>
+	</div>	
+	
+	<!-- Add code for padding -->
+	
+	<div align="center" class="table-responsive" 
+	style="padding-bottom: 1%; padding-left: 20%;	padding-right: 20%;	padding-top: 1%;">
+		<table id="members" class = "table">
+			<thead><tr><th><p align="center">Members</p></th><tr></thead>
+			<tbody id="membersTableBody" align="center">
+			</tbody>
+		</table>
+		<input type="button" id="startExpensesBtn" value="Start adding expenses" onclick="startExpenses()"/>
+	</div>	
+	<hr>
+	<div align="center" id="addExpensesDiv"
+	style="padding-bottom: 1%; padding-left: 20%;	padding-right: 20%;	padding-top: 1%;">
+		<div id="addExpenseForm" class="table-responsive">
+			<table class="table">
+			<thead><tr><th colspan="2"><p align="center">Add Expense</p></th></tr></thead>
+			<tbody>
+				<tr>
+					<td class="table-cell col-xs-1" align="right"><label>Spent by</label></td>
+					<td class="table-cell col-md-1"><select id="spender"></select></td>
+				</tr>
+				<tr>
+					<td class="table-column col-xs-1" align="right" valign="middle"><label>Spent for</label> <p>(Use Ctrl-click to multiselect)</p></td>
+					<td class="table-cell col-md-1"><select id="recipients" multiple="multiple"></select></td>
+					
+				</tr>
+				<tr>
+					<td class="table-cell col-xs-1" align="right"><label>Amount</label></td>
+					<td class="table-cell col-md-1"><input type="number" min="0" id="amount" /></td>
+				</tr>
+				<tr>
+					<td class="table-cell col-xs-1" align="right"><label>Description</label></td>
+					<td class="table-cell col-md-1"><input type="text" id="description" /></td>
+				</tr>
+				<tr><td colspan="2" align="center" class="table-cell">				
+					<input type="button" id="addExpenseBtn" value="Add Expense" onclick="addExpense()"/>
+				</td></tr>
+			</tbody>
+			</table>
+		</div>
+	</div>
+	
+	<!-- Add code for padding -->
+	
+	<div id="allExpensesDiv" style="padding-bottom: 1%; padding-left: 20%;	padding-right: 20%;	padding-top: 1%;">
+		<div class="table-responsive">
+			<table id="expenses" class="table">
+				<thead><tr><th colspan="4"><p align="center">Expenses</p></th></tr></thead>
+				<thead>
+					<tr>
+						<th class="col-xs-3"><p align="center">Spent by</p></th>
+						<th class="col-xs-3"><p align="center">Spent for</p></th>
+						<th class="col-xs-3"><p align="center">Amount</p></th>
+						<th class="col-xs-3"><p align="center">Description</p></th>
+					</tr>
+				</thead>
+				<tbody id="expensesTableBody">
+				
+				</tbody>
+			</table>
+		</div>
+	</div>
+</body>
+</html>
